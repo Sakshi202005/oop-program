@@ -252,4 +252,29 @@ public class CircleDrawingApp extends JFrame {
     }
 }
 
+OUTPUT:
+Circle Drawing Algorithms
+1. DDA
+2. Bresenham
+3. Midpoint
+4. Exit
+
+Select Algorithm: 1
+Enter radius of circle: 5
+
+Select Style:
+1. Solid
+2. Dotted
+3. Dashed
+Choice: 1
+Close the drawing window to continue...
+
+
+
+
+
+
+
+
+
 
