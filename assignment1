@@ -9,7 +9,7 @@ public class RobustCalculator {
         // Flag to control the main calculation loop
         boolean running = true;
 
-        System.out.println("🚀 Robust Command Line Calculator");
+        System.out.println(" Robust Command Line Calculator");
         System.out.println("Supported operations: +, -, *, /, % (modulus)");
         System.out.println("Enter 'quit' to exit the calculator.");
         System.out.println("----------------------------------------");
@@ -104,3 +104,14 @@ public class RobustCalculator {
         scanner.close();
     }
 }
+
+
+OUTPUT:
+Welcome to the Java Calculator!
+Enter first number: 5
+Enter an operator (+, -, *, /, %): *
+Enter second number: 5
+Result: 25.0
+Do you want to perform another calculation? (Y/N): y
+Enter first number:
+
