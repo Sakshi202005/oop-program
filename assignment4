@@ -78,3 +78,27 @@ public class SimpleATM {
         }
     }
 }
+
+OUTPUT:
+=== Welcome to Simple ATM ===
+
+1. Check Balance
+2. Deposit Money
+3. Withdraw Money
+4. Exit
+
+Enter your choice: 2
+Enter amount to deposit: 5000
+5000.0 deposited successfully.
+Deposit operation completed.
+
+Operation completed safely.
+
+1. Check Balance
+2. Deposit Money
+3. Withdraw Money
+4. Exit
+
+Enter your choice: 1
+Your current balance:10000.0
+Operation completed safely.
