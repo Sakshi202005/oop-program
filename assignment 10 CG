@@ -1,0 +1,252 @@
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+
+/**
+ * Implements 2D geometric transformations (Translation, Rotation, Scaling, Shear)
+ * on a set of 2D points using 3x3 Homogeneous Transformation Matrices.
+ */
+public class TwoDTransformations {
+
+    // Helper class to represent a 2D point (x, y)
+    static class Point {
+        double x, y;
+        public Point(double x, double y) {
+            this.x = x;
+            this.y = y;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("(%.2f, %.2f)", x, y);
+        }
+    }
+    
+    // Initial Polygon Points (A simple rectangle for demonstration)
+    private List<Point> points = new ArrayList<>();
+    
+    // Constructor to initialize the object to be transformed
+    public TwoDTransformations() {
+        points.add(new Point(2.0, 2.0)); // A
+        points.add(new Point(6.0, 2.0)); // B
+        points.add(new Point(6.0, 4.0)); // C
+        points.add(new Point(2.0, 4.0)); // D
+    }
+
+    /**
+     * Prints the coordinates of the current set of points.
+     * @param description A label for the state of the points.
+     */
+    private void printPoints(String description) {
+        System.out.println(description + ":");
+        for (int i = 0; i < points.size(); i++) {
+            System.out.printf("  P%d %s%n", i + 1, points.get(i).toString());
+        }
+    }
+
+    /**
+     * Applies a 3x3 transformation matrix to all points.
+     * The points are treated as 1x3 homogeneous matrices [x, y, 1].
+     * 
+     * @param matrix The 3x3 transformation matrix.
+     */
+    private void applyTransformation(double[][] matrix) {
+        List<Point> newPoints = new ArrayList<>();
+        
+        for (Point p : this.points) {
+            // Point vector: [x, y, 1]
+            double[] v = {p.x, p.y, 1.0};
+            double[] result = new double[3];
+
+            // Perform matrix multiplication: [x', y', 1] = [x, y, 1] * Matrix
+            // result[i] = Sum(v[j] * matrix[j][i]) for j=0 to 2
+            
+            for (int i = 0; i < 3; i++) { // Column of the result matrix (x', y', 1)
+                for (int j = 0; j < 3; j++) { // Row of the matrix (x, y, 1)
+                    result[i] += v[j] * matrix[j][i];
+                }
+            }
+            
+            // The new point is (result[0], result[1])
+            newPoints.add(new Point(result[0], result[1]));
+        }
+        this.points = newPoints;
+    }
+
+    // ------------------------------------------------------------------
+    // 1. TRANSLATION (about X-axis or Y-axis)
+    // ------------------------------------------------------------------
+
+    /**
+     * Generates a 3x3 Translation Matrix.
+     * @param tx Translation distance along X-axis.
+     * @param ty Translation distance along Y-axis.
+     * @return The translation matrix.
+     */
+    private double[][] createTranslationMatrix(double tx, double ty) {
+        return new double[][]{
+            {1, 0, 0},
+            {0, 1, 0},
+            {tx, ty, 1}
+        };
+    }
+
+    public void translate(double tx, double ty) {
+        double[][] matrix = createTranslationMatrix(tx, ty);
+        applyTransformation(matrix);
+    }
+    
+    // ------------------------------------------------------------------
+    // 2. ROTATION (about X-axis or Y-axis interpretation: 
+    //    Rotation around Origin)
+    // ------------------------------------------------------------------
+    
+    /**
+     * Generates a 3x3 Rotation Matrix (counter-clockwise).
+     * 
+     * @param angleDegrees Angle in degrees.
+     * @return The rotation matrix.
+     */
+    private double[][] createRotationMatrix(double angleDegrees) {
+        double theta = Math.toRadians(angleDegrees);
+        double cosTheta = Math.cos(theta);
+        double sinTheta = Math.sin(theta);
+        
+        return new double[][]{
+            {cosTheta, sinTheta, 0},
+            {-sinTheta, cosTheta, 0},
+            {0, 0, 1}
+        };
+    }
+
+    public void rotate(double angleDegrees) {
+        double[][] matrix = createRotationMatrix(angleDegrees);
+        applyTransformation(matrix);
+    }
+
+    // ------------------------------------------------------------------
+    // 3. SCALING (about X-axis or Y-axis)
+    // ------------------------------------------------------------------
+
+    /**
+     * Generates a 3x3 Scaling Matrix.
+     * 
+     * @param sx Scaling factor along X-axis.
+     * @param sy Scaling factor along Y-axis.
+     * @return The scaling matrix.
+     */
+    private double[][] createScalingMatrix(double sx, double sy) {
+        return new double[][]{
+            {sx, 0, 0},
+            {0, sy, 0},
+            {0, 0, 1}
+        };
+    }
+
+    public void scale(double sx, double sy) {
+        double[][] matrix = createScalingMatrix(sx, sy);
+        applyTransformation(matrix);
+    }
+
+    // ------------------------------------------------------------------
+    // 4. SHEAR (about X-axis or Y-axis)
+    // ------------------------------------------------------------------
+    
+    /**
+     * Generates a 3x3 Shear Matrix.
+     * 
+     * @param shX Shear factor along X-axis (ShX).
+     * @param shY Shear factor along Y-axis (ShY).
+     * @return The shear matrix.
+     */
+    private double[][] createShearMatrix(double shX, double shY) {
+        return new double[][]{
+            {1, shY, 0}, // Row 1: x' = x + y*shX
+            {shX, 1, 0}, // Row 2: y' = x*shY + y
+            {0, 0, 1}
+        };
+    }
+
+    public void shear(double shX, double shY) {
+        double[][] matrix = createShearMatrix(shX, shY);
+        applyTransformation(matrix);
+    }
+
+    // ------------------------------------------------------------------
+    // Main Menu Logic
+    // ------------------------------------------------------------------
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        TwoDTransformations transformer = new TwoDTransformations();
+        boolean running = true;
+
+        System.out.println(" 2D Geometric Transformations Program");
+        transformer.printPoints("Initial Object Coordinates");
+        System.out.println("----------------------------------------");
+
+        while (running) {
+            System.out.println("\n--- Menu ---");
+            System.out.println("1. Translation (Tx, Ty)");
+            System.out.println("2. Rotation (Angle)");
+            System.out.println("3. Scaling (Sx, Sy)");
+            System.out.println("4. Shear (ShX, ShY)");
+            System.out.println("5. Reset and View Initial Points");
+            System.out.println("6. Exit");
+            System.out.print("Enter choice (1-6): ");
+
+            try {
+                int choice = scanner.nextInt();
+                double val1, val2;
+
+                switch (choice) {
+                    case 1:
+                        System.out.print("Enter Translation along X (Tx): ");
+                        val1 = scanner.nextDouble();
+                        System.out.print("Enter Translation along Y (Ty): ");
+                        val2 = scanner.nextDouble();
+                        transformer.translate(val1, val2);
+                        transformer.printPoints("Transformed Points (Translation)");
+                        break;
+                    case 2:
+                        System.out.print("Enter Rotation Angle (Degrees, CCW): ");
+                        val1 = scanner.nextDouble();
+                        transformer.rotate(val1);
+                        transformer.printPoints("Transformed Points (Rotation)");
+                        break;
+                    case 3:
+                        System.out.print("Enter Scaling factor for X (Sx): ");
+                        val1 = scanner.nextDouble();
+                        System.out.print("Enter Scaling factor for Y (Sy): ");
+                        val2 = scanner.nextDouble();
+                        transformer.scale(val1, val2);
+                        transformer.printPoints("Transformed Points (Scaling)");
+                        break;
+                    case 4:
+                        System.out.print("Enter X-Shear factor (ShX): ");
+                        val1 = scanner.nextDouble();
+                        System.out.print("Enter Y-Shear factor (ShY): ");
+                        val2 = scanner.nextDouble();
+                        transformer.shear(val1, val2);
+                        transformer.printPoints("Transformed Points (Shear)");
+                        break;
+                    case 5:
+                        // Reset the object to its initial state
+                        transformer = new TwoDTransformations();
+                        transformer.printPoints("Reset Points");
+                        break;
+                    case 6:
+                        running = false;
+                        System.out.println("Exiting program. Goodbye!");
+                        break;
+                    default:
+                        System.out.println("Invalid choice. Please enter a number between 1 and 6.");
+                }
+            } catch (Exception e) {
+                System.err.println(" Invalid input. Please enter valid numeric values.");
+                scanner.nextLine(); // Consume the invalid input
+            }
+        }
+        scanner.close();
+    }
+}
