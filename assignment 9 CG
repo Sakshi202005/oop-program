@@ -1,0 +1,138 @@
+public class CohenSutherlandClipper {
+
+    // Define the clipping window boundaries
+    private static final double X_MAX = 10.0;
+    private static final double X_MIN = 0.0;
+    private static final double Y_MAX = 8.0;
+    private static final double Y_MIN = 0.0;
+
+    // Define the 4-bit OutCode constants (using integer bit masks)
+    // Bit 1: Above (0001)
+    private static final int INSIDE = 0; // 0000
+    private static final int ABOVE  = 1; // 0001
+    private static final int BELOW  = 2; // 0010
+    private static final int RIGHT  = 4; // 0100
+    private static final int LEFT   = 8; // 1000
+
+    /**
+     * Computes the 4-bit region OutCode for a given point (x, y).
+     * @param x The x-coordinate of the point.
+     * @param y The y-coordinate of the point.
+     * @return The 4-bit region code.
+     */
+    private int computeOutCode(double x, double y) {
+        int code = INSIDE;
+
+        if (x < X_MIN) {
+            code |= LEFT; // Bit 4 set (1000)
+        } else if (x > X_MAX) {
+            code |= RIGHT; // Bit 3 set (0100)
+        }
+
+        if (y < Y_MIN) {
+            code |= BELOW; // Bit 2 set (0010)
+        } else if (y > Y_MAX) {
+            code |= ABOVE; // Bit 1 set (0001)
+        }
+        return code;
+    }
+
+    /**
+     * Implements the Cohen-Sutherland line clipping algorithm.
+     * @param x1 Start x-coordinate.
+     * @param y1 Start y-coordinate.
+     * @param x2 End x-coordinate.
+     * @param y2 End y-coordinate.
+     */
+    public void cohenSutherlandClip(double x1, double y1, double x2, double y2) {
+        System.out.printf("Clipping line from (%.2f, %.2f) to (%.2f, %.2f) against window [%.1f, %.1f] x [%.1f, %.1f]%n",
+                           x1, y1, x2, y2, X_MIN, X_MAX, Y_MIN, Y_MAX);
+        
+        // Loop until trivial acceptance or rejection is achieved
+        while (true) {
+            int outCode1 = computeOutCode(x1, y1);
+            int outCode2 = computeOutCode(x2, y2);
+            
+            // Case 1: Trivial Acceptance (Both endpoints are inside the window)
+            if ((outCode1 == INSIDE) && (outCode2 == INSIDE)) {
+                System.out.println("  Result: Trivial Accept.");
+                System.out.printf("  Clipped line is: (%.2f, %.2f) to (%.2f, %.2f)%n", x1, y1, x2, y2);
+                break;
+            }
+
+            // Case 2: Trivial Rejection (Both endpoints are in the same outside region,
+            //         meaning they both share at least one boundary side)
+            if ((outCode1 & outCode2) != INSIDE) {
+                System.out.println("  Result: Trivial Reject (Outside the same region).");
+                System.out.println("  Clipped line is: NONE");
+                break;
+            }
+
+            // Case 3: Requires Clipping (The line intersects a boundary)
+            // We only need to clip the point that is outside the window.
+            int outCodeOutside = (outCode1 != INSIDE) ? outCode1 : outCode2;
+            
+            // Calculate the slope (m)
+            double m = (y2 - y1) / (x2 - x1);
+            
+            // Determine intersection point based on which bit is set in the outside code
+            // The algorithm iteratively clips the line against one boundary at a time.
+            
+            double x_int = 0.0, y_int = 0.0;
+
+            if ((outCodeOutside & ABOVE) != 0) {
+                // Intersects the TOP boundary (Y = Y_MAX)
+                y_int = Y_MAX;
+                x_int = x1 + (Y_MAX - y1) / m;
+            } else if ((outCodeOutside & BELOW) != 0) {
+                // Intersects the BOTTOM boundary (Y = Y_MIN)
+                y_int = Y_MIN;
+                x_int = x1 + (Y_MIN - y1) / m;
+            } else if ((outCodeOutside & RIGHT) != 0) {
+                // Intersects the RIGHT boundary (X = X_MAX)
+                x_int = X_MAX;
+                y_int = y1 + (X_MAX - x1) * m;
+            } else if ((outCodeOutside & LEFT) != 0) {
+                // Intersects the LEFT boundary (X = X_MIN)
+                x_int = X_MIN;
+                y_int = y1 + (X_MIN - x1) * m;
+            }
+            
+            // Replace the outside point with the intersection point
+            if (outCodeOutside == outCode1) {
+                x1 = x_int;
+                y1 = y_int;
+            } else {
+                x2 = x_int;
+                y2 = y_int;
+            }
+            
+            // The loop repeats, calculating new OutCodes for the shortened line segment
+            // until the line is trivially accepted or rejected.
+        }
+        // 
+    }
+
+    public static void main(String[] args) {
+        CohenSutherlandClipper clipper = new CohenSutherlandClipper();
+
+        System.out.println("--- Cohen-Sutherland Clipping Test Cases ---");
+        System.out.printf("Clipping Window: (%.1f, %.1f) to (%.1f, %.1f)%n%n", X_MIN, Y_MIN, X_MAX, Y_MAX);
+
+        // Case 1: Trivial Accept (Fully Inside)
+        clipper.cohenSutherlandClip(1.0, 1.0, 5.0, 5.0);
+        System.out.println("----------------------------------------------");
+
+        // Case 2: Trivial Reject (Both points left of window)
+        clipper.cohenSutherlandClip(-5.0, 1.0, -2.0, 5.0);
+        System.out.println("----------------------------------------------");
+
+        // Case 3: Clipping Required (Intersects Top and Right)
+        clipper.cohenSutherlandClip(1.0, 9.0, 12.0, 5.0);
+        System.out.println("----------------------------------------------");
+        
+        // Case 4: Clipping Required (Intersects Left and Bottom)
+        clipper.cohenSutherlandClip(-2.0, -1.0, 5.0, 5.0);
+        System.out.println("----------------------------------------------");
+    }
+}
