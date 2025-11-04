@@ -1,0 +1,255 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.geom.Ellipse2D;
+import java.util.Scanner;
+
+/**
+ * A menu-driven program to draw circles using DDA, Bresenham's, and Midpoint
+ * algorithms with Solid, Dotted, and Dashed styles.
+ * * Instructions:
+ * 1. Run the main method to see the console menu.
+ * 2. Enter your choices for the algorithm and style.
+ * 3. A JFrame window will open displaying the resulting circle.
+ */
+public class CircleDrawingApp extends JFrame {
+
+    // Center and Radius constants for the circle
+    private static final int CENTER_X = 250;
+    private static final int CENTER_Y = 250;
+    private static final int RADIUS = 150;
+
+    // Static variables to hold user's choices
+    private static String selectedAlgorithm = "Bresenham";
+    private static String selectedStyle = "Solid";
+
+    public CircleDrawingApp() {
+        setTitle("Circle Drawing Demonstration");
+        setSize(500, 550);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+        add(new CirclePanel());
+    }
+
+    /**
+     * Inner JPanel class to handle the custom drawing logic.
+     */
+    class CirclePanel extends JPanel {
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            Graphics2D g2d = (Graphics2D) g;
+            
+            // Set the desired stroke style based on user selection
+            setDrawingStyle(g2d);
+
+            // Print status to the console for confirmation
+            System.out.println("\nDrawing Circle: Algorithm=" + selectedAlgorithm + ", Style=" + selectedStyle);
+            
+            // Draw the axes for reference
+            g2d.setColor(Color.LIGHT_GRAY);
+            g2d.drawLine(CENTER_X, 0, CENTER_X, getHeight());
+            g2d.drawLine(0, CENTER_Y, getWidth(), CENTER_Y);
+
+            // Set the drawing color for the circle
+            g2d.setColor(Color.BLUE);
+
+            // Select the drawing algorithm based on user input
+            switch (selectedAlgorithm) {
+                case "DDA":
+                    drawDDACircle(g2d, CENTER_X, CENTER_Y, RADIUS);
+                    break;
+                case "Bresenham":
+                    drawBresenhamCircle(g2d, CENTER_X, CENTER_Y, RADIUS);
+                    break;
+                case "Midpoint":
+                    drawMidpointCircle(g2d, CENTER_X, CENTER_Y, RADIUS);
+                    break;
+                default:
+                    // Fallback to Midpoint if selection is invalid
+                    drawMidpointCircle(g2d, CENTER_X, CENTER_Y, RADIUS);
+                    System.err.println("Invalid algorithm selected. Defaulting to Midpoint.");
+            }
+        }
+
+        /**
+         * Applies the selected stroke style (Solid, Dotted, or Dashed) using Graphics2D.
+         * This achieves the different styles robustly.
+         */
+        private void setDrawingStyle(Graphics2D g2d) {
+            Stroke stroke;
+            
+            switch (selectedStyle) {
+                case "Dotted":
+                    // Dotted line: 1 pixel on, 2 pixels off, rounded ends
+                    float[] dottedPattern = {1.0f, 2.0f};
+                    stroke = new BasicStroke(2, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 1.0f, dottedPattern, 0.0f);
+                    break;
+                case "Dashed":
+                    // Dashed line: 8 pixels on, 4 pixels off, normal ends
+                    float[] dashedPattern = {8.0f, 4.0f};
+                    stroke = new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0f, dashedPattern, 0.0f);
+                    break;
+                case "Solid":
+                default:
+                    // Solid line: Default stroke
+                    stroke = new BasicStroke(2);
+                    break;
+            }
+            g2d.setStroke(stroke);
+            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        }
+
+        /**
+         * Plots a single pixel and uses 8-way symmetry to plot all 8 points.
+         */
+        private void plotSymmetry(Graphics2D g2d, int xc, int yc, int x, int y) {
+            // Drawing pixels as small rectangles for visibility
+            g2d.fillRect(xc + x, yc + y, 2, 2);
+            g2d.fillRect(xc - x, yc + y, 2, 2);
+            g2d.fillRect(xc + x, yc - y, 2, 2);
+            g2d.fillRect(xc - x, yc - y, 2, 2);
+            g2d.fillRect(xc + y, yc + x, 2, 2);
+            g2d.fillRect(xc - y, yc + x, 2, 2);
+            g2d.fillRect(xc + y, yc - x, 2, 2);
+            g2d.fillRect(xc - y, yc - x, 2, 2);
+        }
+
+        // --- 1. DDA Circle Drawing Algorithm ---
+        /**
+         * Implements the Digital Differential Analyzer (DDA) algorithm for circle drawing.
+         * It uses trigonometric functions and incremental steps.
+         * 
+         */
+        private void drawDDACircle(Graphics2D g2d, int xc, int yc, int r) {
+            int steps = (int) (Math.PI * r / Math.sqrt(2));
+            float x = r;
+            float y = 0;
+            float dX, dY;
+            float theta = 1.0f / r; // Angle step size
+
+            plotSymmetry(g2d, xc, yc, (int) x, (int) y);
+
+            for (int i = 0; i <= steps; i++) {
+                // Calculation using rotation formula
+                dX = x * (float) Math.cos(theta) - y * (float) Math.sin(theta);
+                dY = x * (float) Math.sin(theta) + y * (float) Math.cos(theta);
+                x = dX;
+                y = dY;
+                
+                plotSymmetry(g2d, xc, yc, (int) x, (int) y);
+            }
+        }
+
+        // --- 2. Bresenham's Circle Drawing Algorithm ---
+        /**
+         * Implements Bresenham's algorithm for circle drawing using only integer arithmetic.
+         * It is one of the most efficient algorithms.
+         * 
+         */
+        private void drawBresenhamCircle(Graphics2D g2d, int xc, int yc, int r) {
+            int x = 0;
+            int y = r;
+            int d = 3 - 2 * r; // Initial decision parameter
+
+            plotSymmetry(g2d, xc, yc, x, y);
+
+            while (x <= y) {
+                x++;
+                if (d < 0) {
+                    d = d + 4 * x + 6;
+                } else {
+                    y--;
+                    d = d + 4 * (x - y) + 10;
+                }
+                plotSymmetry(g2d, xc, yc, x, y);
+            }
+        }
+
+        // --- 3. Midpoint Circle Drawing Algorithm ---
+        /**
+         * Implements the Midpoint algorithm, similar to Bresenham's, using a decision 
+         * parameter based on the midpoint between two candidate pixels.
+         */
+        private void drawMidpointCircle(Graphics2D g2d, int xc, int yc, int r) {
+            int x = 0;
+            int y = r;
+            int p = 1 - r; // Initial decision parameter
+
+            plotSymmetry(g2d, xc, yc, x, y);
+
+            while (x <= y) {
+                x++;
+                if (p < 0) {
+                    p = p + 2 * x + 1;
+                } else {
+                    y--;
+                    p = p + 2 * (x - y) + 1;
+                }
+                plotSymmetry(g2d, xc, yc, x, y);
+            }
+        }
+    }
+
+    /**
+     * Main method handles the console menu and initialization.
+     */
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        boolean running = true;
+        
+        // Loop to allow user to try different settings
+        while (running) {
+            System.out.println("\n=============================================");
+            System.out.println("            C I R C L E   D R A W E R");
+            System.out.println("=============================================");
+            
+            // --- Algorithm Selection ---
+            System.out.println("1. Select Algorithm:");
+            System.out.println("   [D]DA, [B]resenham, [M]idpoint (Current: " + selectedAlgorithm + ")");
+            System.out.print("   Enter D, B, or M: ");
+            String algoChoice = scanner.next().toUpperCase();
+
+            switch (algoChoice) {
+                case "D": selectedAlgorithm = "DDA"; break;
+                case "B": selectedAlgorithm = "Bresenham"; break;
+                case "M": selectedAlgorithm = "Midpoint"; break;
+                default: System.err.println("Invalid algorithm choice. Keeping " + selectedAlgorithm); break;
+            }
+
+            // --- Style Selection ---
+            System.out.println("\n2. Select Style:");
+            System.out.println("   [S]olid, [O]Dotted, [A]Dashed (Current: " + selectedStyle + ")");
+            System.out.print("   Enter S, O, or A: ");
+            String styleChoice = scanner.next().toUpperCase();
+
+            switch (styleChoice) {
+                case "S": selectedStyle = "Solid"; break;
+                case "O": selectedStyle = "Dotted"; break;
+                case "A": selectedStyle = "Dashed"; break;
+                default: System.err.println("Invalid style choice. Keeping " + selectedStyle); break;
+            }
+
+            // --- Action Selection ---
+            System.out.println("\n3. Action:");
+            System.out.println("   [V]iew Circle, [E]xit");
+            System.out.print("   Enter V or E: ");
+            String action = scanner.next().toUpperCase();
+
+            if (action.equals("E")) {
+                running = false;
+                System.out.println("\nExiting program. Goodbye!");
+                continue;
+            } else if (action.equals("V")) {
+                // Initialize and display the JFrame on the Event Dispatch Thread (EDT)
+                SwingUtilities.invokeLater(() -> {
+                    new CircleDrawingApp().setVisible(true);
+                });
+            } else {
+                System.err.println("Invalid action. Please try again.");
+            }
+        }
+        scanner.close();
+    }
+}
+
+
