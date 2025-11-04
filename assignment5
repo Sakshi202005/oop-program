@@ -87,3 +87,39 @@ public class SimpleChatSimulation {
         System.out.println("Simulation finished.");
     }
 }
+
+
+
+//output
+Alice alive? true
+Bob alive? true
+Alice sent message 1
+Bob sent message 1
+Alice sent message 2
+Bob sent message 2
+Alice sent message 3
+Bob sent message 3
+Alice sent message 4
+Bob sent message 4
+Pausing Bob...
+Alice sent message 5
+Alice sent message 6
+Alice sent message 7
+Alice sent message 8
+Resuming Bob...
+Alice sent message 9
+Bob sent message 5
+Alice sent message 10
+Bob sent message 6
+Alice sent message 11
+Bob sent message 7
+Alice sent message 12
+Bob sent message 8
+Stopping both users...
+Alice stopped.
+Bob stopped.
+Alice alive? false
+Bob alive? false
+Simulation finished.
+
+
