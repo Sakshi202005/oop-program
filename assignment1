@@ -1,0 +1,106 @@
+import java.util.InputMismatchException;
+import java.util.Scanner;
+
+public class RobustCalculator {
+
+    public static void main(String[] args) {
+        // Initialize Scanner object to read user input from the console
+        Scanner scanner = new Scanner(System.in);
+        // Flag to control the main calculation loop
+        boolean running = true;
+
+        System.out.println("🚀 Robust Command Line Calculator");
+        System.out.println("Supported operations: +, -, *, /, % (modulus)");
+        System.out.println("Enter 'quit' to exit the calculator.");
+        System.out.println("----------------------------------------");
+
+        // Main application loop (continuous calculation)
+        while (running) {
+            try {
+                // 1. Get the first number
+                System.out.print("\nEnter first number (or 'quit'): ");
+                String input = scanner.next();
+
+                if (input.equalsIgnoreCase("quit")) {
+                    running = false;
+                    System.out.println(" Exiting calculator. Goodbye!");
+                    break;
+                }
+
+                // Parse the first number
+                double num1 = Double.parseDouble(input);
+
+                // 2. Get the operator
+                System.out.print("Enter operator (+, -, *, /, %): ");
+                String operator = scanner.next();
+
+                // 3. Get the second number
+                System.out.print("Enter second number: ");
+                // We use nextLine() with a check to avoid issues with next()
+                // and to allow parsing from the input stream.
+                double num2 = scanner.nextDouble(); 
+
+                double result = 0;
+                boolean validOperation = true;
+
+                // Conditional Logic: 'switch' statement for operation processing
+                switch (operator) {
+                    case "+":
+                        result = num1 + num2;
+                        break;
+                    case "-":
+                        result = num1 - num2;
+                        break;
+                    case "*":
+                        result = num1 * num2;
+                        break;
+                    case "/":
+                        // Critical Error Handling: Division by zero
+                        if (num2 == 0) {
+                            throw new ArithmeticException("Error: Division by zero is not allowed.");
+                        }
+                        result = num1 / num2;
+                        break;
+                    case "%":
+                        // Critical Error Handling: Modulus by zero
+                        if (num2 == 0) {
+                            throw new ArithmeticException("Error: Modulus by zero is not allowed.");
+                        }
+                        result = num1 % num2;
+                        break;
+                    default:
+                        // Invalid Operator Handling
+                        System.err.println(" Error: Invalid operator entered. Please use +, -, *, /, or %.");
+                        validOperation = false;
+                        break;
+                }
+
+                // Only print the result if a valid operation was performed
+                if (validOperation) {
+                    System.out.printf(" Result: %.2f %s %.2f = %.2f%n", num1, operator, num2, result);
+                }
+
+            } catch (InputMismatchException e) {
+                // Error Handling for incorrect data type (e.g., entering a string for a number)
+                System.err.println(" Input Error: Invalid input type. Please enter numbers for operands.");
+                // Important: Consume the rest of the current line to clear the invalid input
+                // and prevent an infinite loop.
+                scanner.next(); 
+            } catch (NumberFormatException e) {
+                 // Error Handling for non-numeric input when parsing the first number
+                System.err.println(" Input Error: Invalid number format. Please enter a valid number.");
+                // Note: The 'quit' check handles the expected string input.
+            } catch (ArithmeticException e) {
+                // Error Handling for arithmetic issues like division by zero
+                System.err.println(e.getMessage());
+            } catch (Exception e) {
+                // Generic catch-all for any other unexpected errors
+                System.err.println(" An unexpected error occurred: " + e.getMessage());
+            }
+            System.out.println("----------------------------------------");
+        } // End of while loop
+
+        // Close the scanner resource
+        scanner.close();
+    }
+}
