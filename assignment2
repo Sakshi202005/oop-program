@@ -1,125 +1,133 @@
 import java.util.Scanner;
-import java.util.ArrayList;
-import java.util.List;
 
-public class ECommerceOrderProcessor {
+public class HotelBookingSystem {
+
+    // Global constant for array dimensions
+    private static final int FLOORS = 3;
+    private static final int ROOMS_PER_FLOOR = 5;
+
+    // The core data structure: a 2D array to represent the hotel.
+    // true = Booked, false = Available
+    private static boolean[][] hotelRooms = new boolean[FLOORS][ROOMS_PER_FLOOR];
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
-        List<Product> purchasedItems = new ArrayList<>();
-        double subtotal = 0.0;
-        
-        System.out.println(" Welcome to the E-commerce Order System!");
-        System.out.println("--- Product Initialization Demo ---");
+        boolean running = true;
 
-        // Initialization using Overloaded Constructors
-        // 1. Initialized via 4-argument constructor (pre-defined)
-        Product laptop = new Product("LPT01", "Gaming Laptop", 1200.00, 5);
-        // 2. Initialized via 2-argument constructor (pre-defined)
-        Product mouse = new Product("MOU02", 25.00); 
-
-        // Display pre-defined products
-        System.out.printf("Pre-defined Product 1: %s (Price: $%.2f, Stock: %d)%n", laptop.getName(), laptop.getUnitPrice(), laptop.getQuantityInStock());
-        System.out.printf("Pre-defined Product 2: %s (Price: $%.2f, Stock: %d)%n", mouse.getName(), mouse.getUnitPrice(), mouse.getQuantityInStock());
-        System.out.println("-----------------------------------");
+        System.out.println(" Welcome to the Simple Hotel Booking System!");
         
-        // Dynamic User Input for a new custom product
+        // Initialize all rooms as available (default is 'false' for boolean arrays)
+        // No explicit initialization loop is needed, but we start the menu loop.
+
+        while (running) {
+            displayMenu();
+            
+            try {
+                // Get user choice
+                System.out.print("Enter your choice (1-3): ");
+                int choice = scanner.nextInt();
+                
+                // Conditional logic (switch) to process menu options
+                switch (choice) {
+                    case 1:
+                        viewRooms();
+                        break;
+                    case 2:
+                        bookRoom(scanner);
+                        break;
+                    case 3:
+                        running = false;
+                        System.out.println(" Thank you for using the system. Goodbye!");
+                        break;
+                    default:
+                        System.out.println(" Invalid choice. Please enter a number between 1 and 3.");
+                }
+            } catch (java.util.InputMismatchException e) {
+                System.out.println(" Invalid input. Please enter a number.");
+                // Consume the invalid input to prevent an infinite loop
+                scanner.next(); 
+            }
+            System.out.println("----------------------------------------");
+        }
+        
+        scanner.close();
+    }
+
+    /**
+     * Displays the main menu options.
+     */
+    private static void displayMenu() {
+        System.out.println("\n--- Main Menu ---");
+        System.out.println("1. View Room Status");
+        System.out.println("2. Book a Room");
+        System.out.println("3. Exit System");
+    }
+
+    /**
+     * Views and displays the status of all rooms in the hotel.
+     */
+    private static void viewRooms() {
+        System.out.println("\n--- Room Status (F: Floor, R: Room) ---");
+        System.out.println("| Status | Room Number (0 to " + (ROOMS_PER_FLOOR - 1) + ")");
+        System.out.print("| F\\R    |");
+
+        // Print header row for room numbers
+        for (int r = 0; r < ROOMS_PER_FLOOR; r++) {
+            System.out.printf("  %d  |", r);
+        }
+        System.out.println();
+        
+        // Print separator
+        System.out.println("----------------------------------------------");
+
+        // Looping construct: Nested loops to iterate through the 2D array
+        for (int f = 0; f < FLOORS; f++) {
+            System.out.printf("| Floor %d |", f);
+            for (int r = 0; r < ROOMS_PER_FLOOR; r++) {
+                // Conditional logic: Check the boolean status
+                String status = hotelRooms[f][r] ? "BOOKED" : "FREE "; // 'true' is booked, 'false' is free
+                System.out.printf(" %s |", status);
+            }
+            System.out.println();
+        }
+    }
+
+    /**
+     * Handles the room booking process by taking user input for floor and room number.
+     * @param scanner The Scanner object for input.
+     */
+    private static void bookRoom(Scanner scanner) {
+        System.out.println("\n--- Book a Room ---");
+
         try {
-            System.out.println("Add a Custom Product to the Cart:");
-            
-            System.out.print("Enter Product Name: ");
-            String name = scanner.nextLine();
-            
-            System.out.print("Enter Unit Price: $");
-            double price = scanner.nextDouble();
-            
-            System.out.print("Enter Quantity to Purchase: ");
-            int quantity = scanner.nextInt();
-            
-            // Create a custom product (using the default constructor for simplicity, 
-            // but setting the essential details)
-            Product customProduct = new Product(); 
-            // In a real system, you'd generate a unique ID. Using a placeholder here.
-            customProduct.setUnitPrice(price); 
-            
-            // Simulating adding the custom product to the order list for calculation
-            for (int i = 0; i < quantity; i++) {
-                purchasedItems.add(new Product("CUST01", name, price, 1)); // Add product instances
-            }
-            
-            System.out.printf(" Added %d unit(s) of %s (at $%.2f each) to the cart.%n", quantity, name, price);
-            
-            // Process pre-defined products (assuming 1 unit of each is purchased)
-            if (laptop.checkStock(1)) {
-                purchasedItems.add(laptop);
-            }
-            if (mouse.checkStock(1)) {
-                purchasedItems.add(mouse);
+            System.out.print("Enter Floor Number (0 to " + (FLOORS - 1) + "): ");
+            int floor = scanner.nextInt();
+
+            System.out.print("Enter Room Number (0 to " + (ROOMS_PER_FLOOR - 1) + "): ");
+            int room = scanner.nextInt();
+
+            // Error Handling: Check for valid array boundaries
+            if (floor < 0 || floor >= FLOORS || room < 0 || room >= ROOMS_PER_FLOOR) {
+                System.out.println(" Invalid selection. Please check the available floor/room ranges.");
+                return;
             }
 
-            // --- Dynamic Cost Computation ---
-            for (Product p : purchasedItems) {
-                subtotal += p.getUnitPrice();
-            }
-
-            // --- Conditional Discount Policies ---
-            double discountRate = 0.0;
-            double discountAmount = 0.0;
-
-            if (subtotal >= 1000.00) {
-                // Condition 1: High-value order discount
-                discountRate = 0.10; // 10%
-                discountAmount = subtotal * discountRate;
-            } else if (purchasedItems.size() >= 3) {
-                // Condition 2: Multi-item discount
-                discountRate = 0.05; // 5%
-                discountAmount = subtotal * discountRate;
-            }
-
-            double grandTotal = subtotal - discountAmount;
-            
-            // --- Present Detailed Invoice Summary ---
-            System.out.println("\n=================================");
-            System.out.println("🧾 FINAL ORDER INVOICE");
-            System.out.println("=================================");
-            
-            System.out.println("Items Purchased:");
-            // Summary for invoice (simplified to show the final composition)
-            int laptopCount = 0, mouseCount = 0, customCount = 0;
-            for(Product p : purchasedItems) {
-                if (p.getProductId().equals("LPT01")) laptopCount++;
-                else if (p.getProductId().equals("MOU02")) mouseCount++;
-                else customCount++;
-            }
-            
-            if (laptopCount > 0) System.out.printf("- %d x %s @ $%.2f%n", laptopCount, laptop.getName(), laptop.getUnitPrice());
-            if (mouseCount > 0) System.out.printf("- %d x %s @ $%.2f%n", mouseCount, mouse.getName(), mouse.getUnitPrice());
-            if (customCount > 0) System.out.printf("- %d x %s @ $%.2f%n", customCount, name, price);
-            
-            System.out.println("---------------------------------");
-            System.out.printf("Subtotal:%25s$%.2f%n", "", subtotal);
-            
-            if (discountAmount > 0) {
-                System.out.printf("Discount Applied (%.0f%%):%14s-$%.2f%n", (discountRate * 100), "", discountAmount);
+            // Conditional Logic: Check if the room is already booked
+            if (hotelRooms[floor][room]) {
+                System.out.println(" Sorry, Room " + room + " on Floor " + floor + " is already BOOKED.");
             } else {
-                System.out.println("Discount Applied (0%%):" + " ".repeat(15) + "-$0.00");
+                // Successful Booking: Update the array status
+                hotelRooms[floor][room] = true; 
+                System.out.println("🎉 Success! Room " + room + " on Floor " + floor + " has been successfully BOOKED.");
             }
-
-            System.out.println("---------------------------------");
-            System.out.printf("**GRAND TOTAL DUE:**%16s**$%.2f**%n", "", grandTotal);
-            System.out.println("=================================");
 
         } catch (java.util.InputMismatchException e) {
-            System.err.println("\n Error: Invalid input. Please enter a valid number for Price and Quantity.");
-        } finally {
-            scanner.close();
+            System.out.println(" Invalid input format. Please enter numbers for the floor and room.");
+            // Consume the invalid input
+            scanner.next(); 
         }
     }
 }
-
-
-
-
 OUTPUT:
 Welcome to the Hotel Room Booking System!
 
