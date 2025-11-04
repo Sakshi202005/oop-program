@@ -1,0 +1,118 @@
+import java.util.Scanner;
+import java.util.ArrayList;
+import java.util.List;
+
+public class ECommerceOrderProcessor {
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        List<Product> purchasedItems = new ArrayList<>();
+        double subtotal = 0.0;
+        
+        System.out.println(" Welcome to the E-commerce Order System!");
+        System.out.println("--- Product Initialization Demo ---");
+
+        // Initialization using Overloaded Constructors
+        // 1. Initialized via 4-argument constructor (pre-defined)
+        Product laptop = new Product("LPT01", "Gaming Laptop", 1200.00, 5);
+        // 2. Initialized via 2-argument constructor (pre-defined)
+        Product mouse = new Product("MOU02", 25.00); 
+
+        // Display pre-defined products
+        System.out.printf("Pre-defined Product 1: %s (Price: $%.2f, Stock: %d)%n", laptop.getName(), laptop.getUnitPrice(), laptop.getQuantityInStock());
+        System.out.printf("Pre-defined Product 2: %s (Price: $%.2f, Stock: %d)%n", mouse.getName(), mouse.getUnitPrice(), mouse.getQuantityInStock());
+        System.out.println("-----------------------------------");
+        
+        // Dynamic User Input for a new custom product
+        try {
+            System.out.println("Add a Custom Product to the Cart:");
+            
+            System.out.print("Enter Product Name: ");
+            String name = scanner.nextLine();
+            
+            System.out.print("Enter Unit Price: $");
+            double price = scanner.nextDouble();
+            
+            System.out.print("Enter Quantity to Purchase: ");
+            int quantity = scanner.nextInt();
+            
+            // Create a custom product (using the default constructor for simplicity, 
+            // but setting the essential details)
+            Product customProduct = new Product(); 
+            // In a real system, you'd generate a unique ID. Using a placeholder here.
+            customProduct.setUnitPrice(price); 
+            
+            // Simulating adding the custom product to the order list for calculation
+            for (int i = 0; i < quantity; i++) {
+                purchasedItems.add(new Product("CUST01", name, price, 1)); // Add product instances
+            }
+            
+            System.out.printf(" Added %d unit(s) of %s (at $%.2f each) to the cart.%n", quantity, name, price);
+            
+            // Process pre-defined products (assuming 1 unit of each is purchased)
+            if (laptop.checkStock(1)) {
+                purchasedItems.add(laptop);
+            }
+            if (mouse.checkStock(1)) {
+                purchasedItems.add(mouse);
+            }
+
+            // --- Dynamic Cost Computation ---
+            for (Product p : purchasedItems) {
+                subtotal += p.getUnitPrice();
+            }
+
+            // --- Conditional Discount Policies ---
+            double discountRate = 0.0;
+            double discountAmount = 0.0;
+
+            if (subtotal >= 1000.00) {
+                // Condition 1: High-value order discount
+                discountRate = 0.10; // 10%
+                discountAmount = subtotal * discountRate;
+            } else if (purchasedItems.size() >= 3) {
+                // Condition 2: Multi-item discount
+                discountRate = 0.05; // 5%
+                discountAmount = subtotal * discountRate;
+            }
+
+            double grandTotal = subtotal - discountAmount;
+            
+            // --- Present Detailed Invoice Summary ---
+            System.out.println("\n=================================");
+            System.out.println("🧾 FINAL ORDER INVOICE");
+            System.out.println("=================================");
+            
+            System.out.println("Items Purchased:");
+            // Summary for invoice (simplified to show the final composition)
+            int laptopCount = 0, mouseCount = 0, customCount = 0;
+            for(Product p : purchasedItems) {
+                if (p.getProductId().equals("LPT01")) laptopCount++;
+                else if (p.getProductId().equals("MOU02")) mouseCount++;
+                else customCount++;
+            }
+            
+            if (laptopCount > 0) System.out.printf("- %d x %s @ $%.2f%n", laptopCount, laptop.getName(), laptop.getUnitPrice());
+            if (mouseCount > 0) System.out.printf("- %d x %s @ $%.2f%n", mouseCount, mouse.getName(), mouse.getUnitPrice());
+            if (customCount > 0) System.out.printf("- %d x %s @ $%.2f%n", customCount, name, price);
+            
+            System.out.println("---------------------------------");
+            System.out.printf("Subtotal:%25s$%.2f%n", "", subtotal);
+            
+            if (discountAmount > 0) {
+                System.out.printf("Discount Applied (%.0f%%):%14s-$%.2f%n", (discountRate * 100), "", discountAmount);
+            } else {
+                System.out.println("Discount Applied (0%%):" + " ".repeat(15) + "-$0.00");
+            }
+
+            System.out.println("---------------------------------");
+            System.out.printf("**GRAND TOTAL DUE:**%16s**$%.2f**%n", "", grandTotal);
+            System.out.println("=================================");
+
+        } catch (java.util.InputMismatchException e) {
+            System.err.println("\n Error: Invalid input. Please enter a valid number for Price and Quantity.");
+        } finally {
+            scanner.close();
+        }
+    }
+}
