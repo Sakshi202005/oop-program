@@ -116,3 +116,35 @@ public class ECommerceOrderProcessor {
         }
     }
 }
+
+
+
+
+OUTPUT:
+Welcome to the Hotel Room Booking System!
+
+Main Menu:
+1. View Rooms
+2. Book a Room
+3. Exit
+Enter your choice: 2
+Enter floor number (1 to 3): 3
+Enter room number (1 to 5): 2
+Room successfully booked.
+
+Main Menu:
+1. View Rooms
+2. Book a Room
+3. Exit
+Enter your choice: 1
+
+Room Availability:
+Floor 1: [Room 1: Available] [Room 2: Available] [Room 3: Available] [Room 4: Available] [Room 5: Available] 
+Floor 2: [Room 1: Available] [Room 2: Available] [Room 3: Available] [Room 4: Available] [Room 5: Available] 
+Floor 3: [Room 1: Available] [Room 2: Booked] [Room 3: Available] [Room 4: Available] [Room 5: Available] 
+
+Main Menu:
+1. View Rooms
+2. Book a Room
+3. Exit
+Enter your choice:
