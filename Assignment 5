@@ -1,0 +1,124 @@
+class ChatUser extends Thread {
+    private String userName;
+    private boolean running = true;
+    private boolean paused = false;
+
+    public ChatUser(String name) {
+        this.userName = name;
+    }
+
+    // Pause the thread
+    public void pauseUser() {
+        paused = true;
+    }
+
+    // Resume the thread
+    public synchronized void resumeUser() {
+        paused = false;
+        notify(); // wake up thread if it is waiting
+    }
+
+    // Stop the thread
+    public void stopUser() {
+        running = false;
+        resumeUser(); // in case it's paused
+    }
+
+    public void run() {
+        int count = 1;
+        try {
+            while (running) {
+                synchronized (this) {
+                    while (paused) {
+                        wait(); // wait if paused
+                    }
+                }
+                System.out.println(userName + " sent message " + count);
+                count++;
+                Thread.sleep(500);
+            }
+        } catch (InterruptedException e) {
+            System.out.println(userName + " interrupted.");
+        }
+        System.out.println(userName + " stopped.");
+    }
+}
+
+public class SimpleChatSimulation {
+    public static void main(String[] args) throws Exception {
+        ChatUser u1 = new ChatUser("Alice");
+        ChatUser u2 = new ChatUser("Bob");
+
+        // Set priorities
+        u1.setPriority(Thread.NORM_PRIORITY); // normal priority
+        u2.setPriority(Thread.MAX_PRIORITY);  // higher priority
+
+        // Start threads
+        u1.start();
+        u2.start();
+
+        System.out.println("Alice alive? " + u1.isAlive());
+        System.out.println("Bob alive? " + u2.isAlive());
+
+        // Let them run for 2 seconds
+        Thread.sleep(2000);
+
+        // Pause Bob
+        System.out.println("Pausing Bob...");
+        u2.pauseUser();
+        Thread.sleep(2000);
+
+        // Resume Bob
+        System.out.println("Resuming Bob...");
+        u2.resumeUser();
+        Thread.sleep(2000);
+
+        // Stop both
+        System.out.println("Stopping both users...");
+        u1.stopUser();
+        u2.stopUser();
+
+        // Join to wait for them to finish
+        u1.join();
+        u2.join();
+
+        System.out.println("Alice alive? " + u1.isAlive());
+        System.out.println("Bob alive? " + u2.isAlive());
+        System.out.println("Simulation finished.");
+    }
+}
+
+
+
+//output
+Alice alive? true
+Bob alive? true
+Alice sent message 1
+Bob sent message 1
+Alice sent message 2
+Bob sent message 2
+Alice sent message 3
+Bob sent message 3
+Alice sent message 4
+Bob sent message 4
+Pausing Bob...
+Alice sent message 5
+Alice sent message 6
+Alice sent message 7
+Alice sent message 8
+Resuming Bob...
+Alice sent message 9
+Bob sent message 5
+Alice sent message 10
+Bob sent message 6
+Alice sent message 11
+Bob sent message 7
+Alice sent message 12
+Bob sent message 8
+Stopping both users...
+Alice stopped.
+Bob stopped.
+Alice alive? false
+Bob alive? false
+Simulation finished.
+
